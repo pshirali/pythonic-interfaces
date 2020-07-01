@@ -29,11 +29,12 @@
       .red { color: #fa0000; }
       .large { font-size: 2em; }
       a, a > code {
-        color: rgb(249, 38, 114);
+        color: rgb(247, 104, 156);
         text-decoration: none;
       }
       code {
-        background: #e7e8e2;
+        color: #000000;
+        background: #D88FFA;
         border-radius: 5px;
       }
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
@@ -138,6 +139,7 @@
       .ps-orange {color:rgb(235, 132, 100)}
       .ps-yellow {color:rgb(233, 190, 106);}
       .ps-green {color:rgb(165, 214, 123);}
+      .ps-blue {color:rgb(97, 166, 245);}
       .ps-purple {color:rgb(216, 143, 250);}
       .underline {text-decoration: underline;}
       .invisible {color: #272822;}
@@ -165,11 +167,15 @@ class: center, middle, inverse
 ### .ps-yellow[PyCon India 2020 - 02-03 October 2020]
 
 
+
+
+
+
 ---
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 
-# What are interfaces?
+# What is an interface?
 
 .invisible[-]
 
@@ -180,94 +186,297 @@ class: center, middle, inverse
 ##### Source: .underline[en.wikipedia.org/wiki/Interface_(computing)]
 
 
----
-<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
-
-## However,
-
-# .ps-red[python does not enforce boundaries]
-
-### .ps-green[programmers are expected to follow conventions, and respect boundaries]
 
 
 ---
 layout: false
-class: inverse
+class: inverse, middle
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
+# Example application
 
-# Existing convention
+1. An application does some data processing through a `DataProcessor` component
 
+2. `DataProcessor` performs `read` and `write` operations on file-like objects supplied to it
 
-* PEP 8 - Style Guide for Python Code (https://www.python.org/dev/peps/pep-0008/)
+3. `DataProcessor` does not know/care about the _type_ of file-like object
 
-<!-- * PEP8: Global Variable Names: https://www.python.org/dev/peps/pep-0008/#id44
-* PEP8: Designing for Inheritance: https://www.python.org/dev/peps/pep-0008/#id49
-* PEP8: Public and Internal Interfaces: https://www.python.org/dev/peps/pep-0008/#id50 -->
-
-
-.left-half[
-
-### Modules
-
-```python
-# `__all__` controls visibility
-
-__all__ = [
-    MyExposedClass,
-    my_exposed_function,
-]
-
-# --- implementation
-
-class MyExposedClass:
-    ...
-
-def my_exposed_function():
-    ...
-
-def unexposed_function():
-    ...
 
 ```
-]
-
-.right-half[
-
-### Classes
-
-```python
-# collections.Counter from stdlib
-
-class Counter(dict):
-
-    # --- deemed public
-
-    def most_common(self, n=None):
-        ...
-
-    def elements(self):
-        ...
-
-
-    # --- deemed internal
-
-    def _keep_positive(self):
-        ...
+      ____________                             ___________
+     |            |        depends on         |           |
+     |    Data    | _ _ _ _ _ _ _ _ _ _ _ _ \ | File-like |
+     |  Processor |                         / |   object  |
+     |____________|                           |___________|
 ```
-]
+
+
+
 
 
 ---
-class: center, middle, inverse
+layout: false
+class: inverse, middle
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
+# Interface for File-like Object
 
-# TBD: Life of an application
+```python
+
+# read `size` (int) number of bytes. -1 means EOF
+# return data (bytes)
+#
+def read(self, size: int = -1) -> bytes:
+    ...
+
+# write data (bytes)
+# return the number of bytes written (int)
+#
+def write(self, data: bytes) -> int:
+    ...
+
+
+# --**
+# File-like objects generally have more methods
+# We are keeping it simple in this example
+```
+
+
 
 
 ---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# There may be many implementations ...
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+```python
+
+class FileIO:
+    '''Performs I/O on an underlying file'''
+
+    #
+    # ------------------------------------------------------
+    
+    def read(self, size: int = -1) -> bytes:
+        ...
+
+    def write(self, data: bytes) -> int:
+        ...
+
+    # ------------------------------------------------------
+
+    #
+    # ... other methods
+    
+```
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+```python
+
+class SocketIO:
+    '''Performs I/O on a socket'''
+
+    #
+    # ------------------------------------------------------
+    
+    def read(self, size: int = -1) -> bytes:
+        ...
+
+    def write(self, data: bytes) -> int:
+        ...
+
+    # ------------------------------------------------------
+
+    #
+    # ... other methods
+    
+```
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+```python
+
+class MemoryIO:
+    '''Performs I/O on an buffer in memory'''
+
+    #
+    # ------------------------------------------------------
+    
+    def read(self, size: int = -1) -> bytes:
+        ...
+
+    def write(self, data: bytes) -> int:
+        ...
+
+    # ------------------------------------------------------
+
+    #
+    # ... other methods
+    
+```
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Observation
+
+- .ps-green[Method definitions are same]
+- .ps-green[Intent/behaviour is the same]
+- .ps-blue[Implementation is different]
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# In this talk ...
+
+- .ps-yellow[Method definitions are same] <---- .ps-purple[We'll deal with this subject]
+- Intent/behaviour is the same
+- Implementation is different
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# We need a mechanism which ensures ...
+
+1. All .ps-yellow[required methods] are implemented
+2. Method .ps-yellow[names] are correct
+3. Method .ps-yellow[signatures] are correct (arguments, types, return values etc)
+4. .ps-yellow[Descriptors/decorators] like `@staticmethod`, `@classmethod`, `@property`
+etc are honoured.
+
+
+## Why?
+
+We would like `DataProcessor` to work with _compliant_ File-like objects
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Types of mechanisms ...
+
+1. Passive
+2. Active
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Passive
+
+1. Checks are `not` part of the application
+2. Checks are invoked externally and independently
+
+### Example:
+
+- Static code analysis --- linters, mypy etc.
+- Runtime code checks --- unittests
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Active
+
+1. Checks are `part of` the application
+2. They execute when the application runs
+3. They raise errors from within the application
+
+
+### Example:
+
+In this talk, we'll look at .underline[_active interface enforcement_]
+
+
+
+
+---
+layout: false
+class: center, inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+## Does python provide a mechanism out-of-the-box?
+
+.invisible[.]
+
+# .invisible[.]
+
+
+
+
+---
+layout: false
+class: center, inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+## Does python provide a mechanism out-of-the-box?
+
+.invisible[.]
+
+# .ps-green[Yes!]
+
+
+---
+layout: false
+class: inverse, middle
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 # Open for Q&A
