@@ -34,7 +34,7 @@
       }
       code {
         color: #000000;
-        background: #D88FFA;
+        background: #e0a648;
         border-radius: 5px;
       }
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
@@ -156,15 +156,17 @@ class: center, middle, inverse
 
 
 # .ps-green[Pythonic Interfaces]
-## The secret to building maintainable, quality code!
-
-## .ps-red[**DRAFT** : Work in progress]
+### The secret to building maintainable, quality code!
 
 .invisible[-]
 
-## Praveen G Shirali
+.invisible[-]
 
-### .ps-yellow[PyCon India 2020 - 02-03 October 2020]
+## .ps-yellow[Praveen G Shirali]
+
+### .ps-blue[PyCon India 2020]
+
+#### .ps-orange[02nd-05th October 2020]
 
 
 
@@ -224,17 +226,13 @@ class: inverse, middle
 
 ```python
 
-# read `size` (int) number of bytes. -1 means EOF
-# return data (bytes)
-#
 def read(self, size: int = -1) -> bytes:
-    ...
+    # read `size` (int) number of bytes. -1 means EOF
+    # return data (bytes)
 
-# write data (bytes)
-# return the number of bytes written (int)
-#
 def write(self, data: bytes) -> int:
-    ...
+    # write data (bytes)
+    # return the number of bytes written (int)
 
 
 # --**
@@ -350,10 +348,69 @@ class: inverse, middle
 
 # Observation
 
-- .ps-green[Method definitions are same]
-- .ps-green[Intent/behaviour is the same]
-- .ps-blue[Implementation is different]
+- .ps-yellow[Method definitions are same]
+- .ps-yellow[Intended behaviour is the same]
+- .ps-red[Implementation is different]
 
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Today, we'll explore this ...
+
+- .ps-yellow[Method definitions are same]
+.invisible[- Intended behaviour is the same]
+.invisible[- Implementation is different]
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Why?
+
+### .ps-blue[(1) Many ways to implement methods]
+
+### .ps-blue[(2) How you interact.. depends on how the methods are defined]
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# I pity the _foo_ ...
+
+```python
+    def foo(self):                              # name matters
+
+    def foo(self, a: int, b: float, c=None):    # signature matters
+
+    @property
+    def foo(self):                              # not callable
+
+    @foo.setter
+    def foo(self, bar: bool):                   # assign. Don't call
+
+    @staticmethod
+    def foo():                                  # no 'self'
+
+    @classmethod
+    def foo(cls):                               # class as 1st arg
+
+    def foo(self):
+        yield                                   # generator function
+
+    async def foo(self):                        # coroutine function
+
+    ...
+```
 
 
 
@@ -363,12 +420,11 @@ layout: false
 class: inverse, middle
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
-# In this talk ...
+# So,
 
-- .ps-yellow[Method definitions are same] <---- .ps-purple[We'll deal with this subject]
-- Intent/behaviour is the same
-- Implementation is different
-
+- .ps-yellow[Method definitions are same]
+.invisible[- Intended behaviour is the same]
+.invisible[- Implementation is different]
 
 
 
@@ -378,19 +434,30 @@ layout: false
 class: inverse, middle
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
-# We need a mechanism which ensures ...
+# So,
 
-1. All .ps-yellow[required methods] are implemented
-2. Method .ps-yellow[names] are correct
-3. Method .ps-yellow[signatures] are correct (arguments, types, return values etc)
-4. .ps-yellow[Descriptors/decorators] like `@staticmethod`, `@classmethod`, `@property`
+- .ps-yellow[Method definitions are same] .ps-green[<--- can this be enforced?]
+.invisible[- Intended behaviour is the same]
+.invisible[- Implementation is different]
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Quest:
+
+### A mechanism which ensures & enforces ...
+
+1. All .ps-yellow[required methods] are implemented with correct .ps-yellow[names]
+2. Method .ps-yellow[signatures] are correct (arguments, order, type annotation etc)
+3. .ps-yellow[Descriptors/decorators] like `@staticmethod`, `@classmethod`, `@property`
 etc are honoured.
-
-
-## Why?
-
-We would like `DataProcessor` to work with _compliant_ File-like objects
-
+4. generator, coroutine functions etc
+5. ...more??
 
 
 
@@ -400,7 +467,7 @@ layout: false
 class: inverse, middle
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
-# Types of mechanisms ...
+# Ways to go about it ...
 
 1. Passive
 2. Active
@@ -441,37 +508,8 @@ class: inverse, middle
 
 ### Example:
 
-In this talk, we'll look at .underline[_active interface enforcement_]
+- Python's abstract base classes (abc)
 
-
-
-
----
-layout: false
-class: center, inverse, middle
-<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
-
-
-## Does python provide a mechanism out-of-the-box?
-
-.invisible[.]
-
-# .invisible[.]
-
-
-
-
----
-layout: false
-class: center, inverse, middle
-<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
-
-
-## Does python provide a mechanism out-of-the-box?
-
-.invisible[.]
-
-# .ps-green[Yes!]
 
 
 ---
@@ -479,17 +517,698 @@ layout: false
 class: inverse, middle
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
-# Open for Q&A
+
+# Abstract Base Class
+
+```python
+
+# ABCMeta is the enforcement mechanism
+# available as a **metaclass**
+#
+from abc import ABCMeta
+
+# decorate interface methods with `abstractmethod` decorator
+#
+from abc import abstractmethod
+
+# +more
+# Can define `__subclasshook__` which controls behaviour of `issubclass(..)`
+#
+# `collections.abc` has ABCs for common collections
+```
 
 
-Feel free to reach out with any questions or feedback. Thanks.
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# Abstract Base Class - Interface definition
+
+```python
+
+from abc import ABCMeta, abstractmethod
+
+# IOMeta is the interface definition
+#
+class IOMeta(metaclass=ABCMeta):           # <--- Class can have any name
+
+    @abstractmethod
+    def read(self, size: int = -1) -> bytes:
+        raise NotImplemented
+
+    @abstractmethod
+    def write(self, data: bytes) -> int:
+        raise NotImplemented
+
+```
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# Abstract Base Class - Usage
+
+```python
+
+# Concrete implementations derive from abstract base classes
+#
+class MemoryIO(IOMeta):
+
+    def read(self, size: int = -1) -> bytes:
+        # actual implementation
+
+    def write(self, data: bytes) -> int:
+        # actual implementation
+
+
+if __name __ == "__main__":
+    m = MemoryIO()            # <--- Compliance is checked on instantiation
+
+```
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# Abstract Base Class - Enforcement
+
+```python
+class MemoryIO(IOMeta):       # missing `write` method implementation
+
+    def read(self, size: int = -1) -> bytes:
+        # actual implementation
+
+if __name __ == "__main__":
+    m = MemoryIO()            # <--- Compliance is checked on instantiation
+```
+```
+# ---- [output] ----
+Traceback (most recent call last):
+  File "{filename}", line {number}, in <module>
+    m = MemoryIO()
+TypeError: Can't instantiate abstract class MemoryIO with abstract methods write
+```
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# Abstract Base Class - Limitations
+
+```python
+
+# ABCMeta does not enforce method signatures
+#
+class MemoryIO(IOMeta):
+
+    def read(self):           # <--- incorrect signature
+        # actual implementation
+
+    def write(self):          # <--- incorrect signature
+        # actual implementation
+
+
+if __name __ == "__main__":
+    m = MemoryIO()            # <--- Does not raise errors
+
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+## .. on abstract base classes:
+
+- enforce presence of methods and names
+- implemented using metaclasses; enforced on derived classes too
+
+## .. but
+
+- abc has existed since Python2
+- does not enforce signatures, or anything beyond just method names
+- goals are/were different (refer to a talk by Raymond Hettinger*)
+
+
+###### Build powerful new datastructures with Python's abstract base classes https://www.youtube.com/watch?v=S_ipdVNSFlo by Raymond Hettinger, at PyCon Russia 2019.
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+## Today we have (in Python3)...
+
+- type annotations
+- inspect library
+
+
+###### _inspect_ can be used to implement poweful enforcement code
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# What can we do with .ps-yellow[_inspect_] ?
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# inspect.signature -- Usage
+
+```python
+import inspect
+
+class MyIO:
+
+    def read(self, size: int = -1) -> bytes:
+        pass
+
+sig = inspect.signature(MyIO.read)    # <------ `inspect.Signature` object
+
+
+
+
+
+_
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# inspect.signature -- Match
+
+```python
+
+
+
+            >>> print(sig)
+            (self, size: int = -1) -> bytes
+
+
+
+
+
+
+
+
+_
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# inspect.signature -- Match
+
+```python
+
+
+
+            >>> print(sig)
+            (self, size: int = -1) -> bytes
+
+    def read(self, size: int = -1) -> bytes:
+        pass
+
+
+
+
+
+_
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# inspect.signature -- Comparison
+
+```python
+def A(a:bytes, b:str, x: int = 10, y:int = 20) -> bool:
+    pass
+
+def B(a:bytes, b:str, x: int = 10, y:int = 20) -> bool:
+    pass
+
+>>> import inspect
+>>> inspect.signature(A) == inspect.signature(B)
+True
+```
+
+1. Presence of all parameters (& type annotations if any, including return annotation)
+2. Parameter names
+3. Parameter order (including keyword arguments)
+
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# @property, data descriptors ...
+
+```python
+class TestDD:
+
+    @property                           # getter
+    def my_prop(self):                  # same name
+        pass
+    
+    @my_prop.setter
+    def my_prop(self, x: int):          # same name
+        pass
+
+    @my_prop.deleter
+    def my_prop(self):                  # same name
+        pass
+
+
+>>> inspect.signature(TestDD.my_prop)
+
+TypeError: <property object at 0x10bf03b80> is not a callable object
+```
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# @property, data descriptors ...
+
+```python
+>>> import inspect
+
+>>> inspect.isdatadescriptor(TestDD.my_prop)
+True
+
+>>> prop_object = getattr(TestDD, "my_prop")
+<property object at 0x108bdbb80>
+
+-----------------------------------------------------------------------------
+
+>>> getattr(prop_object, "fget")
+<function TestDD.my_prop at 0x108d8ba60>          # actual getter
+
+>>> getattr(prop_object, "fset")
+<function TestDD.my_prop at 0x108d8baf0>          # actual setter
+
+>>> getattr(prop_object, "fdel")
+<function TestDD.my_prop at 0x108d8bb80>          # actual deleter
+```
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# classmethod, staticmethod ...
+
+```python
+class CSM:
+
+    @classmethod
+    def my_cls(cls, a, b, c):
+        pass
+
+    @staticmethod
+    def my_stat(a, b, c):
+        pass
+
+-----------------------------------------------------------------------------
+
+>>> inspect.signature(CSM.my_cls)
+(a, b, c)                            # first argument is stripped
+
+
+>>> inspect.signature(CSM.my_cls) == inspect.signature(CSM.my_stat)
+True
+```
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# classmethod, staticmethod ...
+
+```python
+# based on inspect module
+# https://github.com/ksindi/implements/blob/master/implements.py::getobj_via_dict
+def getobj_via_dict(cls, name):
+    for c in cls.__mro__:
+        if name in c.__dict__:
+            return c.__dict__[name]
+    return None
+
+-----------------------------------------------------------------------------
+
+>>> my_cls = getobj_via_dict(CSM, "my_cls")
+>>> isinstance(my_cls, (classmethod, types.ClassMethodDescriptorType))
+True                    # just classmethod for PY < 3.7
+
+
+>>> my_stat = getobj_via_dict(CSM, "my_stat")
+>>> isinstance(my_stat, (staticmethod, types.BuiltinMethodType))
+True
+```
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+
+# generator, coroutine functions ...
+
+```python
+
+class GenCoro:
+
+    def foo(self):
+        yield
+
+    async def bar(self):
+        pass
+
+
+-----------------------------------------------------------------------------
+
+>>> inspect.isgeneratorfunction(GenCoro.foo)
+True
+
+
+>>> inspect.iscoroutinefunction(GenCoro.foo)
+True
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# .ps-yellow[Revisit:] I pitied the _foo_ ...
+
+```python
+✓   def foo(self):                              # name matters
+
+✓   def foo(self, a: int, b: float, c=None):    # signature matters
+
+    @property
+✓   def foo(self):                              # not callable
+
+    @foo.setter
+✓   def foo(self, bar: bool):                   # assign. Don't call
+
+    @staticmethod
+✓   def foo():                                  # no 'self'
+
+    @classmethod
+✓   def foo(cls):                               # class as 1st arg
+
+✓   def foo(self):
+        yield                                   # generator function
+
+✓   async def foo(self):                        # coroutine function
+
+    ...
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Some 3rd party libraries ...
+
+### implements
+- simple, supports py3.6+ only, composition over inheritance
+- https://pypi.org/project/implements/
+
+### python-interfaces
+- supports py2 & py3, uses metaclasses
+- https://pypi.org/project/python-interface/
+
+### zope.interface
+- version 5 now, lots of features
+- https://pypi.org/project/zope.interface/
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Key factors to consider
+
+### When incorporating interface enforcement ...
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Composition vs Inheritance
+
+.left-half[
+Example: `implements`
+
+1. Clean: Class is unaware of enforcement mechanism.
+2. Readable: Easy to identify classes implementing interfaces. Decorator
+is just above declaration.
+3. Explicit: Implement it for each class individually.
+4. Verbose: Does not draw from the advantages of inheritance.
+
+```python
+@implements(Interface)
+class MyClass:
+    ...
+```
+
+]
+
+.right-half[
+Example: `python-interface`, `abc`
+
+1. Object Oriented: Part of class hierarchy. Potential for metaclass conflict etc.
+2. Less Readable: For classes with deep class hierarchy spanning files
+3. Implicit: Leverages class hierarchy for enforcement. Subclasses are
+automatically enforced.
+
+```python
+# abc: Interface inherits from abc.ABCMeta
+class MyClass(metaclass=MyInterface):
+    ...
+
+# python-interface
+class MyClass(implements(Interface)):
+    ...
+```
+]
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Early vs Late Enforcement
+
+Early is better.
+
+.left-half[
+Example: `implements`, `python-interface`
+
+1. Enforced on import/class-creation
+2. Potential to discover more violations easily & sooner
+
+```python
+@implements(Interface) # << checked here
+class MyClass:
+    ...
+```
+
+]
+
+.right-half[
+Example: `abc`
+
+1. Enforced on instantiation.
+2. Higher dependence on code path
+
+```python
+# abc: Interface inherits from abc.ABCMeta
+class MyClass(metaclass=MyInterface):
+    ...
+
+m = MyClass() # << checked here
+```
+]
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Interface segregation
+
+1. Define small(er) interfaces.
+2. Let implementations implement multiple interfaces.
+3. Supported by `abc`, `implements`, `python-interface`
+
+```python
+class Reader(Interface):
+
+    def read(self, size: int = -1) -> bytes:
+        pass
+
+class Writer(Interface):
+
+    def write(self, data: bytes) -> int:
+        pass
+
+@implements(Reader)
+@implements(Writer)
+class Implementation:
+    pass
+```
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Recap
+
+### We looked at:
+
+1. What interfaces are, and why do we need them
+2. Different ways in which methods can be defined in Python
+3. How does Python's `abc` enforce methods
+4. How `inspect` can help us build stronger interface checks
+5. Some third party libraries
+6. Key factors to consider while incorporating interfaces
+
+
+
+---
+layout: false
+class: inverse, middle
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# Open for Q&A, Discussion & Feedback
+
+
+Let me know if you've faced hurdles with interfaces. How have you solved them?
+Has this talk been helpful? How can we improve this further?
 
 
 ## Praveen G Shirali
-- praveengshirali@gmail.com
+- Email: .ps-blue[praveengshirali@gmail.com]
 - `pshirali` on BangPypers Slack
 - https://linkedin.com/in/praveenshirali
 - https://github.com/pshirali
+- I'm .underline[not] on Twitter
 
 ## Link to this talk
 - https://pshirali.github.io/pythonic-interfaces
