@@ -6,7 +6,7 @@ The secret to building maintainable, quality code!` to be presented at
 PyCon India 2020 (October 2-3 2020)
 
 
-Current Status: **Working Draft**
+Current Status: **Final Draft**
 
 
 A link to the official proposal is available [here](https://in.pycon.org/cfp/2020/proposals/pythonic-interfaces-the-secret-to-building-maintainable-quality-code~bYjYd/)
