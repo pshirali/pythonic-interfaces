@@ -352,10 +352,50 @@ layout: false
 class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
-# What does this mean?
+# .ps-yellow[What does interface enforcement mean?]
+
+.invisible[-]
+
+## Use code to verify that a .ps-blue[class adheres to an interface]
+
+## If it doesn't, then the .ps-red[application raises errors]
+
+.invisible[-]
+
+## Interface adherance is a .ps-green[requirement] for the application
+
+## to either .ps-purple[start], or .ps-orange[run correctly].
 
 
 
+
+---
+layout: false
+class: inverse
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# .ps-yellow[What do we want to enforce?]
+
+### [1] .ps-green[presence of required methods, correct names]
+
+### [2] .ps-green[method signatures (arguments, order, type annotations etc)]
+
+### [3] .ps-green[Descriptors/decorators (@staticmethod, @property etc)]
+
+### [4] .ps-green[Special types: generator, coroutine functions (async) etc]
+
+### [5] .ps-green[..may be more? (anything that improves quality)]
+
+
+
+
+
+---
+layout: false
+class: inverse
+<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
+
+# In summary, the expectation is ...
 
 
 ---
@@ -389,8 +429,6 @@ class DosaInterface:
 
 ```
 ]
-
-
 
 
 
@@ -722,49 +760,6 @@ layout: false
 class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
-# .ps-yellow[What does interface enforcement mean?]
-
-.invisible[-]
-
-## Use code to verify that a .ps-blue[class adheres to an interface]
-
-## If it doesn't, then the .ps-red[application raises errors]
-
-.invisible[-]
-
-## Interface adherance is a .ps-green[requirement] for the application
-
-## to either .ps-purple[start], or .ps-orange[run correctly].
-
-
-
-
-
----
-layout: false
-class: inverse
-<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
-
-# .ps-yellow[What do we want to enforce?]
-
-### [1] .ps-green[presence of required methods, correct names]
-
-### [2] .ps-green[method signatures (arguments, order, type annotations etc)]
-
-### [3] .ps-green[Descriptors/decorators (@staticmethod, @property etc)]
-
-### [4] .ps-green[Special types: generator, coroutine functions (async) etc]
-
-### [5] .ps-green[..may be more? (anything that improves quality)]
-
-
-
-
----
-layout: false
-class: inverse
-<!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
-
 
 # Abstract Base Class
 
@@ -796,9 +791,9 @@ class: inverse
 
 from abc import ABCMeta, abstractmethod
 
-# IOMeta is the interface definition
+# ReadWriter is the interface definition
 #
-class IOMeta(metaclass=ABCMeta):  # <--- Class can have any name
+class ReadWriter(metaclass=ABCMeta): # <-- Class can have any name
 
     @abstractmethod
     def read(self, size: int = -1) -> str:
@@ -826,7 +821,7 @@ class: inverse
 
 # Concrete implementations derive from abstract base classes
 #
-class MemIO(IOMeta):
+class MemIO(ReadWriter):
 
     def read(self, size: int = -1) -> str:
         # actual implementation
@@ -853,7 +848,7 @@ class: inverse
 # Abstract Base Class - Enforcement
 
 ```python
-class MemIO(IOMeta):  # missing `write` method implementation
+class MemIO(ReadWriter):  # missing `write` method implementation
 
     def read(self, size: int = -1) -> str:
         # actual implementation
@@ -884,7 +879,7 @@ class: inverse
 
 # ABCMeta does not enforce method signatures
 #
-class MemIO(IOMeta):
+class MemIO(ReadWriter):
 
     def read(self):           # <--- incorrect signature
         # actual implementation
@@ -960,7 +955,7 @@ class: inverse
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 ## I pity the _foo_ ...
@@ -1049,7 +1044,7 @@ True
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 
@@ -1082,7 +1077,7 @@ TypeError: <property object at 0x10bf03b80>
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 
@@ -1111,7 +1106,7 @@ True
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 
@@ -1143,15 +1138,15 @@ True
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 
 # classmethod, staticmethod ...
 
 ```python
-# based on inspect module
-# https://github.com/ksindi/implements/blob/master/implements.py::getobj_via_dict
+# https://github.com/ksindi/implements/blob/master/implements.py
+# ::getobj_via_dict
 def getobj_via_dict(cls, name):
     for c in cls.__mro__:
         if name in c.__dict__:
@@ -1159,9 +1154,9 @@ def getobj_via_dict(cls, name):
     return None
 
 -----------------------------------------------------------------------------
-
 >>> my_cls = getobj_via_dict(CSM, "my_cls")
->>> isinstance(my_cls, (classmethod, types.ClassMethodDescriptorType))
+>>> isinstance(my_cls, (classmethod,
+                        types.ClassMethodDescriptorType))
 True                    # just classmethod for PY < 3.7
 
 
@@ -1175,7 +1170,7 @@ True
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 ## .ps-yellow[Revisit:] I pitied the _foo_ ...
@@ -1209,7 +1204,7 @@ class: inverse, middle
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 # Some 3rd party libraries ...
@@ -1241,7 +1236,7 @@ class: inverse
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 # Composition vs Inheritance
@@ -1283,7 +1278,7 @@ class MyClass(implements(IFace)):
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 # Early vs Late enforcement
@@ -1329,7 +1324,7 @@ m = MyClass() # << checked here
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 # Recap
@@ -1360,12 +1355,21 @@ class: inverse
 #### [2] R. Hettinger @ PyCon Russia 2019: https://www.youtube.com/watch?v=S_ipdVNSFlo
 
 
+# Further Reading
+
+#### [1] https://realpython.com/python-interface/
+
+#### [2] https://realpython.com/inheritance-composition-python/
+
+#### [3] https://www.youtube.com/watch?v=F4wUrj6pmSI -- Understanding Go Interfaces (by Francesc Campoy). Great talk to understanding interfaces conceptually (though it is explained in the context of Golang).
+
+
 
 
 
 ---
 layout: false
-class: inverse, middle
+class: inverse
 <!-- SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE SLIDE -->
 
 # Open for Q&A, Discussion & Feedback
